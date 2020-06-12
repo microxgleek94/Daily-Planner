@@ -33,23 +33,76 @@ function createTimeBlocks() {
         $(".container").append(row);
         
         var hourDisplay = $("<div>").addClass("hour col-2");
-        $(hourDisplay).text(timeBlocks[i].Time);
+        hourDisplay.text(timeBlocks[i].Time);
         console.log(`This time is being displayed in the "Hour" coloumn: ${timeBlocks[i].Time}`);
 
-        var inputDisplay = $("<div>").addClass("description col-10")
-        var inputRow = $("<input>").attr({type:"text" , placeholder: "You can type your day's activities here"}).text(timeBlocks[i].input);
-        $(inputDisplay).append(inputRow);
-    
-
-        //Populate calendar cells with saved items
-        var textArea = $("<textarea>").addClass("textarea col-12").attr("id", "textareabutton").text(localStorage.getItem("myEventbutton"));
-        $(inputDisplay).append(inputRow, textArea);
+        var inputBox = $("<textarea>")
+        .attr({ type:"text", 
+                placeholder: "You can type your day's activities here", 
+                id: "inputDescription" + (i + 1)
+            })
+        .addClass("col-8")
+        .text(timeBlocks[i].input)
+        console.log(`The user wrote: ${timeBlocks[i].input}`);
 
         var saveBtn = $("<button>");
-        $(saveBtn).addClass("saveBtn col-1 flex-nowrap").attr("id", "button").text("Save");
-        $(row).append(hourDisplay, inputRow, saveBtn);
+        $(saveBtn)
+        .attr({
+            class: "saveBtn col-1 flex-nowrap",
+            id: "button" + (i+1)
+        })
+        .text("Save");
+        console.log(`The save btn was clicked: ${saveBtn}`);
+        $(row).append(hourDisplay, inputBox, saveBtn);
     };
 };
 
-
 createTimeBlocks();
+
+//Add user's input to calendar to local storage
+$("button").click(function () {
+    event.preventDefault();
+    var currentID = $(this).attr('id')
+    var toStore = $(("#inputDescription" + currentID)).val();
+    localStorage.setItem(("saveInfo" + currentID), toStore);
+});
+
+//Check relative time
+function checkTime() {
+    for (var i = 0; i < timeBlocks.length; i++) {
+        var currentTime = moment().hour(9 + i);
+        if (moment().isBefore(currentTime)) {
+            $("#inputDescription" + (i +1)).addClass("future");
+
+        } else if (moment().isAfter(currentTime)) {
+            $("#inputDescription" + (i +1)).addClass("past");
+
+        } else {
+            $("#inputDescription" + (i +1)).addClass("present");
+        }
+    };
+};
+
+checkTime();
+
+//Function to clear calendar contents before the start of the next day
+function clearCal() {
+    var clearTime = moment().hour(23).minute(59);
+    if (moment().isSameOrAfter(clearTime)) {
+        for (var i = 0; i < timeBlocks.length; i++) {
+            localStorage.clear();
+        };
+    };
+};
+
+clearCal();
+
+//Function to auto refresh the page every 60 seconds
+//This ensures that the color coding updates promptly.
+function refresh(){
+    setTimeout(function() {
+        location.reload();
+      }, 60000);
+};
+
+refresh();
